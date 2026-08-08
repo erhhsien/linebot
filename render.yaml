@@ -18,3 +18,25 @@ services:
         sync: false
       - key: AUTOMATION_SECRET
         generateValue: true
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_REFRESH_TOKEN
+        sync: false
+      - key: GMAIL_ACCOUNT
+        value: contact@goalbrother.com
+      - key: GMAIL_PUBSUB_TOPIC
+        sync: false
+      - key: PUBSUB_WEBHOOK_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: gaoxian-linebot-db
+          property: connectionString
+
+databases:
+  - name: gaoxian-linebot-db
+    plan: free
+    databaseName: linebot
+    user: linebot
