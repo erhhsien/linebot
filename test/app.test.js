@@ -53,6 +53,19 @@ test("defines the confirmed A, B, and C packages", () => {
   assert.match(QUOTE_SCHEMES.C.name, /推薦方案/);
 });
 
+test("Flex buttons display only package names", async () => {
+  resetStore();
+  const calls = [];
+  const fakeFetch = async (_url, options) => { calls.push(JSON.parse(options.body)); return { ok: true }; };
+  await registerInvitation(
+    { gmailThreadId: "thread-buttons", subject: "合作邀約", sender: "client@example.com", brand: "品牌" },
+    { LINE_DIRECTOR_USER_ID: "Udirector", LINE_CHANNEL_ACCESS_TOKEN: "token" },
+    fakeFetch,
+  );
+  const buttons = calls[0].messages[0].contents.footer.contents;
+  assert.deepEqual(buttons.map((button) => button.action.label), ["方案 A", "方案 B", "方案 C"]);
+});
+
 test("invite registration is idempotent by Gmail thread", async () => {
   resetStore();
   const calls = [];
