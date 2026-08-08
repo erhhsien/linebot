@@ -2,6 +2,10 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 
 const LINE_REPLY_ENDPOINT = "https://api.line.me/v2/bot/message/reply";
 
+export function isMyIdCommand(text) {
+  return text.trim().toLowerCase().replaceAll(" ", "") === "myid";
+}
+
 export function isValidSignature(rawBody, signature, channelSecret) {
   if (!signature || !channelSecret) return false;
   const expected = createHmac("sha256", channelSecret)
@@ -50,7 +54,7 @@ export async function handleWebhook(rawBody, signature, env = process.env) {
       (event) =>
         event.type === "message" &&
         event.message?.type === "text" &&
-        event.message.text.trim().toLowerCase() === "my id",
+        isMyIdCommand(event.message.text),
     )
     .map((event) => {
       const userId = event.source?.userId;
