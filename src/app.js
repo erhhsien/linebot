@@ -103,6 +103,19 @@ function quoteButtons(invitation) {
   });
 }
 
+export function parseSchemeCommand(text) {
+  const match = text.trim().match(/^(?:選擇)?方案\s*([ABC])(?:[：:].*)?$/i);
+  return match ? match[1].toUpperCase() : null;
+}
+
+async function replyWithSchemeDraft(userId, replyToken, invitation, schemeKey, env, fetchImpl) {
+  const scheme = QUOTE_SCHEMES[schemeKey];
+  if (!scheme) return reply(replyToken, "找不到這個報價方案，請重新產生邀約圖卡。", env, fetchImpl);
+  const draft = buildDraft(invitation, scheme.amount, schemeKey);
+  store.sessions.set(userId, { invitationId: invitation.id, schemeKey, amount: scheme.amount, draft, state: "awaiting_confirmation" });
+  return reply(replyToken, `${draft}\n\n——\n請核對後回覆「送出」或「確認」。若要修改，請貼上完整新版文案；修改後仍需再次確認。`, env, fetchImpl);
+}
+
 export function buildInvitationFlex(invitation) {
   const rows = [
     ["品牌", invitation.brand], ["產品", invitation.product], ["合作形式", invitation.deliverables],
@@ -162,16 +175,17 @@ async function handleEvent(event, env, fetchImpl) {
     if (data.action !== "scheme") return;
     const invitation = store.invitations.get(data.invitation);
     if (!invitation) return reply(event.replyToken, "找不到這筆邀約，請重新產生邀約圖卡。", env, fetchImpl);
-    const schemeKey = data.scheme;
-    const scheme = QUOTE_SCHEMES[schemeKey];
-    if (!scheme) return reply(event.replyToken, "找不到這個報價方案，請重新產生邀約圖卡。", env, fetchImpl);
-    const draft = buildDraft(invitation, scheme.amount, schemeKey);
-    store.sessions.set(userId, { invitationId: invitation.id, schemeKey, amount: scheme.amount, draft, state: "awaiting_confirmation" });
-    return reply(event.replyToken, `${draft}\n\n——\n請核對後回覆「送出」或「確認」。若要修改，請貼上完整新版文案；修改後仍需再次確認。`, env, fetchImpl);
+    return replyWithSchemeDraft(userId, event.replyToken, invitation, data.scheme, env, fetchImpl);
   }
   if (event.type !== "message" || event.message?.type !== "text") return;
   const text = event.message.text.trim();
   if (isMyIdCommand(text)) return reply(event.replyToken, `你的 User ID：\n${userId}`, env, fetchImpl);
+  const schemeCommand = parseSchemeCommand(text);
+  if (schemeCommand) {
+    const invitation = [...store.invitations.values()].at(-1);
+    if (!invitation) return reply(event.replyToken, "目前沒有可套用的合作邀約，請等待新的邀約圖卡。", env, fetchImpl);
+    return replyWithSchemeDraft(userId, event.replyToken, invitation, schemeCommand, env, fetchImpl);
+  }
   const session = store.sessions.get(userId);
   if (!session) return;
   const invitation = store.invitations.get(session.invitationId);
