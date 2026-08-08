@@ -36,26 +36,68 @@ function money(value) {
   return digits ? Number(digits).toLocaleString("zh-TW") : "";
 }
 
-export function buildDraft(invitation, amount) {
+export const QUOTE_SCHEMES = {
+  A: {
+    name: "IG Reels 影像合作（品牌形象／生活情境整合）",
+    amount: "250000",
+    items: [
+      "IG Reels 1 支（約 45–60 秒）",
+      "品牌協作貼文（IG）",
+      "Meta 平台同步曝光（IG＋FB）",
+      "IG Story 1 則（含連結導流）",
+      "廣告主授權 1 週",
+    ],
+    direction: "以導演第一人稱生活視角切入，結合工作、旅行、戶外探索、拍攝現場等真實情境，自然帶入品牌服務與產品特色。",
+  },
+  B: {
+    name: "IG 圖文貼文合作",
+    amount: "70000",
+    items: [
+      "IG 圖文貼文 1 則",
+      "FB 同步曝光",
+      "精選照片 5 張（情境照、人物照、產品照搭配）",
+    ],
+    direction: "以導演日常生活分享方式呈現，透過真實使用情境建立品牌連結。",
+  },
+  C: {
+    name: "IG Reels＋圖文整合合作（推薦方案）",
+    amount: "300000",
+    items: [
+      "IG Reels 1 支（約 45–60 秒）",
+      "品牌協作貼文（IG）",
+      "Meta 平台同步曝光（IG＋FB）",
+      "IG 圖文貼文 1 則",
+      "精選照片 5 張（情境照、人物照、產品照搭配）",
+      "IG Story 1 則（含連結導流）",
+      "廣告主授權 3 週",
+    ],
+    direction: "以影像與高質感平面照片同步呈現品牌形象及產品資訊，延長內容曝光週期並增加社群互動效益。",
+  },
+};
+
+export function buildDraft(invitation, amount, schemeKey = null) {
   const contact = invitation.contactName || "聯絡人";
   const brand = invitation.brand || "品牌方";
   const product = invitation.product || "待確認";
   const publishAt = invitation.publishAt || "待確認";
-  return `主旨：Re: ${invitation.subject}\n\nHi ${contact} 您好，\n\n我是阿爾特影視的專案窗口周暐，目前協助高爾賢導演處理品牌合作相關事宜。\n\n謝謝您的來信與邀請，也謝謝 ${brand} 對爾賢導演的認可。我們已經看過這次的合作需求，對合作方向有興趣。\n\n以下先提供本次合作內容與報價供您參考：\n\n合作內容\n- 合作品牌：${brand}\n- 合作產品：${product}\n- 發布平台：Instagram & FB雙平台\n- 合作形式：IG Reels 短影音 1 則\n- IG Stories：一支\n- 發布時間：${publishAt}\n- 品牌協作：包含\n- 投廣授權：待確認\n- 競品排他：不包含\n\n合作報價\nNT$ ${money(amount)}（未稅／含稅，待確認）\n\n以上報價以目前信件中提供的合作條件為基準。若後續調整影片支數、發布平台、素材授權、投廣期間、競品排他或其他交付項目，報價將依最終需求另外確認。\n\n內容呈現上，爾賢導演會希望將產品自然融入實際創作、拍攝流程或日常使用情境，以導演自身的觀點和影像風格分享，而不只是單純的產品開箱。實際創意方向可以在收到完整 Brief 後進一步討論。\n\n如果以上方向符合品牌規劃，再麻煩您提供完整 Brief、預計時程與授權需求，我們會再協助確認後續執行安排。\n\n謝謝，也期待有機會與 ${brand} 合作！\n\nBest regards\nJoseph｜周暐\n阿爾特娛樂製作有限公司｜Goal Brother Entertainment Studios Co., Ltd.\n0932-051-919\n231新北市新店區中正路26號4樓`;
+  const scheme = schemeKey ? QUOTE_SCHEMES[schemeKey] : null;
+  const content = scheme
+    ? `方案 ${schemeKey}｜${scheme.name}\n\n${scheme.items.map((item) => `- ${item}`).join("\n")}\n\n內容方向\n${scheme.direction}`
+    : "合作內容\n- 發布平台：Instagram & FB雙平台\n- 合作形式：IG Reels 短影音 1 則\n- IG Stories：一支\n- 品牌協作：包含\n- 投廣授權：待確認\n- 競品排他：不包含";
+  return `主旨：Re: ${invitation.subject}\n\nHi ${contact} 您好，\n\n我是阿爾特影視的專案窗口周暐，目前協助高爾賢導演處理品牌合作相關事宜。\n\n謝謝您的來信與邀請，也謝謝 ${brand} 對爾賢導演的認可。我們已經看過這次的合作需求，對合作方向有興趣。\n\n以下先提供本次合作內容與報價供您參考：\n\n合作品牌：${brand}\n合作產品：${product}\n發布時間：${publishAt}\n\n${content}\n\n合作報價\nNT$ ${money(amount)}（未稅）\n\n以上報價以目前信件中提供的合作條件為基準。若後續調整影片支數、發布平台、素材授權、投廣期間、競品排他或其他交付項目，報價將依最終需求另外確認。\n\n實際創意方向可以在收到完整 Brief 後進一步討論。如果以上方向符合品牌規劃，再麻煩您提供完整 Brief、預計時程與授權需求，我們會再協助確認後續執行安排。\n\n謝謝，也期待有機會與 ${brand} 合作！\n\nBest regards\nJoseph｜周暐\n阿爾特娛樂製作有限公司｜Goal Brother Entertainment Studios Co., Ltd.\n0932-051-919\n231新北市新店區中正路26號4樓`;
 }
 
 function quoteButtons(invitation) {
-  return Array.from({ length: 4 }, (_, index) => {
-    const amount = money(invitation.quotes?.[index]);
+  return Object.entries(QUOTE_SCHEMES).map(([key, scheme], index) => {
     return {
       type: "button",
       style: index === 0 ? "primary" : "secondary",
       color: index === 0 ? "#1769E0" : undefined,
       action: {
         type: "postback",
-        label: amount ? `報價 ${index + 1}｜NT$ ${amount}` : `報價 ${index + 1}｜輸入金額`,
-        data: `action=quote&invitation=${invitation.id}&slot=${index}`,
-        displayText: amount ? `選擇報價 ${index + 1}：NT$ ${amount}` : `設定報價 ${index + 1}`,
+        label: `方案 ${key}｜NT$ ${money(scheme.amount)}`,
+        data: `action=scheme&invitation=${invitation.id}&scheme=${key}`,
+        displayText: `選擇方案 ${key}：${scheme.name}`,
       },
     };
   });
@@ -117,17 +159,14 @@ async function handleEvent(event, env, fetchImpl) {
   if (!userId) return;
   if (event.type === "postback") {
     const data = parsePostback(event.postback?.data);
-    if (data.action !== "quote") return;
+    if (data.action !== "scheme") return;
     const invitation = store.invitations.get(data.invitation);
     if (!invitation) return reply(event.replyToken, "找不到這筆邀約，請重新產生邀約圖卡。", env, fetchImpl);
-    const slot = Number(data.slot);
-    const amount = money(invitation.quotes?.[slot]);
-    if (!amount) {
-      store.sessions.set(userId, { invitationId: invitation.id, slot, state: "awaiting_amount" });
-      return reply(event.replyToken, `請直接輸入「報價 ${slot + 1}」的數字金額，例如：250000。\n系統不會自行推算價格。`, env, fetchImpl);
-    }
-    const draft = buildDraft(invitation, amount);
-    store.sessions.set(userId, { invitationId: invitation.id, slot, amount, draft, state: "awaiting_confirmation" });
+    const schemeKey = data.scheme;
+    const scheme = QUOTE_SCHEMES[schemeKey];
+    if (!scheme) return reply(event.replyToken, "找不到這個報價方案，請重新產生邀約圖卡。", env, fetchImpl);
+    const draft = buildDraft(invitation, scheme.amount, schemeKey);
+    store.sessions.set(userId, { invitationId: invitation.id, schemeKey, amount: scheme.amount, draft, state: "awaiting_confirmation" });
     return reply(event.replyToken, `${draft}\n\n——\n請核對後回覆「送出」或「確認」。若要修改，請貼上完整新版文案；修改後仍需再次確認。`, env, fetchImpl);
   }
   if (event.type !== "message" || event.message?.type !== "text") return;
@@ -136,15 +175,6 @@ async function handleEvent(event, env, fetchImpl) {
   const session = store.sessions.get(userId);
   if (!session) return;
   const invitation = store.invitations.get(session.invitationId);
-  if (session.state === "awaiting_amount") {
-    const amount = money(text);
-    if (!amount) return reply(event.replyToken, "請只輸入數字金額，例如：250000。", env, fetchImpl);
-    invitation.quotes[session.slot] = amount;
-    session.amount = amount;
-    session.draft = buildDraft(invitation, amount);
-    session.state = "awaiting_confirmation";
-    return reply(event.replyToken, `${session.draft}\n\n——\n請核對後回覆「送出」或「確認」。若要修改，請貼上完整新版文案；修改後仍需再次確認。`, env, fetchImpl);
-  }
   if (session.state === "awaiting_confirmation" && isConfirmCommand(text)) {
     const alreadyQueued = [...store.actions.values()].find((item) => item.invitationId === invitation.id && item.status === "pending");
     if (alreadyQueued) return reply(event.replyToken, "這封信已在待寄佇列中，請勿重複確認。", env, fetchImpl);
