@@ -1,0 +1,19 @@
+name: Renew Gmail watch
+
+on:
+  schedule:
+    - cron: "17 17 * * *"
+  workflow_dispatch:
+
+jobs:
+  renew:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Renew Gmail Pub/Sub watch
+        env:
+          AUTOMATION_SECRET: ${{ secrets.AUTOMATION_SECRET }}
+        run: |
+          curl --fail --silent --show-error \
+            --request POST \
+            --header "Authorization: Bearer $AUTOMATION_SECRET" \
+            https://linebot-bam2.onrender.com/jobs/gmail-watch
