@@ -9,6 +9,7 @@ import {
   isMyIdCommand,
   isValidSignature,
   listPendingActions,
+  parseSchemeCommand,
   QUOTE_SCHEMES,
   registerInvitation,
   resetStore,
@@ -66,6 +67,13 @@ test("Flex buttons display only package names", async () => {
   assert.deepEqual(buttons.map((button) => button.action.label), ["方案 A", "方案 B", "方案 C"]);
 });
 
+test("accepts displayed scheme text as a draft command", () => {
+  assert.equal(parseSchemeCommand("方案 B"), "B");
+  assert.equal(parseSchemeCommand("選擇方案 B：IG 圖文貼文合作"), "B");
+  assert.equal(parseSchemeCommand("選擇方案 C: Reels + 圖文"), "C");
+  assert.equal(parseSchemeCommand("其他訊息"), null);
+});
+
 test("invite registration is idempotent by Gmail thread", async () => {
   resetStore();
   const calls = [];
@@ -101,4 +109,17 @@ test("scheme selection, draft replacement, and confirmation create one send acti
   const completed = completeAction(listPendingActions()[0].id, { gmailMessageId: "message-1" });
   assert.equal(completed.status, "completed");
   assert.equal(listPendingActions().length, 0);
+});
+
+test("displayed scheme keyword generates a draft", async () => {
+  resetStore();
+  const sent = [];
+  const fakeFetch = async (_url, options) => { sent.push(JSON.parse(options.body)); return { ok: true }; };
+  await registerInvitation({ gmailThreadId: "thread-text", subject: "合作邀約", sender: "client@example.com", brand: "品牌" }, {}, fakeFetch);
+  const env = { LINE_CHANNEL_SECRET: "secret", LINE_CHANNEL_ACCESS_TOKEN: "token" };
+  const raw = JSON.stringify({ events: [{ type: "message", replyToken: "r1", source: { userId: "U1" }, message: { type: "text", text: "選擇方案 B：IG 圖文貼文合作" } }] });
+  const signature = createHmac("sha256", env.LINE_CHANNEL_SECRET).update(raw).digest("base64");
+  await handleWebhook(raw, signature, env, fakeFetch);
+  assert.match(sent.at(-1).messages[0].text, /方案 B/);
+  assert.match(sent.at(-1).messages[0].text, /NT\$ 70,000（未稅）/);
 });
