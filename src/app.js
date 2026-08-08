@@ -95,7 +95,7 @@ function quoteButtons(invitation) {
       color: index === 0 ? "#1769E0" : undefined,
       action: {
         type: "postback",
-        label: `方案 ${key}｜NT$ ${money(scheme.amount)}`,
+        label: `方案 ${key}`,
         data: `action=scheme&invitation=${invitation.id}&scheme=${key}`,
         displayText: `選擇方案 ${key}：${scheme.name}`,
       },
